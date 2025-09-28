@@ -59,6 +59,10 @@ local HarvestIgnores = {
 	Rainbow = false
 }
 
+--// Dicts for eggs
+local EggStock = {}
+local OwnedEggs = {}
+
 --// Globals
 local SelectedSeed, AutoPlantRandom, AutoPlant, AutoHarvest, AutoBuy, SellThreshold, NoClip, AutoWalkAllowRandom
 
@@ -125,14 +129,32 @@ local function BuySeed(Seed: string)
 	GameEvents.BuySeedStock:FireServer(Seed)
 end
 
+-- Add a table to store selected seeds for buying
+local SelectedSeedsToBuy = {}
+
+-- Multi-select Combo for seeds in the BuyNode
+BuyNode:MultiSelect({
+    Label = "Seeds",
+    Selected = SelectedSeedsToBuy,
+    GetItems = function()
+        local OnlyStock = OnlyShowStock and OnlyShowStock.Value
+        return GetSeedStock(OnlyStock)
+    end,
+    Callback = function(_, selected)
+        SelectedSeedsToBuy = selected
+    end
+})
+
+-- Update BuyAllSelectedSeeds to buy only selected seeds
 local function BuyAllSelectedSeeds()
-    local Seed = SelectedSeedStock.Selected
-    local Stock = SeedStock[Seed]
-
-	if not Stock or Stock <= 0 then return end
-
-    for i = 1, Stock do
-        BuySeed(Seed)
+    local stockTable = GetSeedStock(true) -- Only seeds with stock > 0
+    for _, seedName in ipairs(SelectedSeedsToBuy) do
+        local stock = stockTable[seedName]
+        if stock and stock > 0 then
+            for i = 1, stock do
+                BuySeed(seedName)
+            end
+        end
     end
 end
 
@@ -427,6 +449,7 @@ local function StartServices()
 	while wait(.1) do
 		GetSeedStock()
 		GetOwnedSeeds()
+		PrintOwnedSeeds() -- Add this line
 	end
 end
 
@@ -538,6 +561,34 @@ AutoWalkMaxWait = WallNode:SliderInt({
     Value = 10,
     Minimum = 1,
     Maximum = 120,
+})
+
+--// UI: Egg Shop Node
+local EggNode = Window:TreeNode({Title="Egg Shop 🥚"})
+
+EggNode:MultiSelect({
+    Label = "Eggs",
+    Selected = SelectedEggsToBuy,
+    GetItems = function()
+        return GetEggStock(OnlyShowEggStock and OnlyShowEggStock.Value)
+    end,
+    Callback = function(_, selected)
+        SelectedEggsToBuy = selected
+    end
+})
+
+AutoBuyEggs = EggNode:Checkbox({
+    Value = false,
+    Label = "Auto-Buy Eggs"
+})
+
+OnlyShowEggStock = EggNode:Checkbox({
+    Value = false,
+    Label = "Only list stock"
+})
+EggNode:Button({
+    Text = "Buy all selected eggs",
+    Callback = BuyAllSelectedEggs,
 })
 
 --// Connections
