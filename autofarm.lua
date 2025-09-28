@@ -40,6 +40,9 @@ local SeedStock, EggStock = {}, {}
 local SelectedSeedsToBuy, SelectedEggsToBuy = {}, {}
 local AutoBuy, AutoBuyEggs = false, false
 
+-- Add this global toggle at the top of your script (after your data section)
+local RunInLoop = false -- Set to true for loop, false for one-time run
+
 --// UI References
 local SeedDropdown, EggDropdown
 
@@ -57,6 +60,29 @@ local function GetSeedStock()
     if not blueberry then print("[AutoFarm] Could not find 'Blueberry' seed frame."); return {} end
     local items = blueberry.Parent
     for _, item in ipairs(items:GetChildren()) do
+        print(string.format("[AutoFarm] --- Properties for item: %s ---", item.Name))
+        for _, prop in ipairs(item:GetChildren()) do
+            if prop:IsA("Instance") then
+                for _, subprop in ipairs(prop:GetChildren()) do
+                    if subprop:IsA("ValueBase") then
+                        print(string.format("  %s.%s = %s", prop.Name, subprop.Name, tostring(subprop.Value)))
+                    elseif subprop:IsA("Instance") then
+                        print(string.format("  %s.%s = %s", prop.Name, subprop.Name, tostring(subprop)))
+                    end
+                end
+            end
+            if prop:IsA("ValueBase") then
+                print(string.format("  %s = %s", prop.Name, tostring(prop.Value)))
+            elseif prop:IsA("Instance") then
+                print(string.format("  %s = %s", prop.Name, tostring(prop)))
+            end
+        end
+        -- Print attributes as well
+        local attributes = item:GetAttributes()
+        for key, value in pairs(attributes) do
+            print(string.format("  [Attribute] %s = %s", key, tostring(value)))
+        end
+        print("[AutoFarm] --- End of properties ---")
         local mf = item:FindFirstChild("Main_Frame")
         if mf then
             local st = mf:FindFirstChild("Stock_Text")
@@ -225,7 +251,7 @@ end
 --// Main Loop
 task.spawn(function()
     print("[AutoFarm] Main loop started.")
-    while task.wait(1) do
+    local function mainStep()
         print("[AutoFarm] --- Loop Start ---")
         GetSeedStock()
         GetEggStock()
@@ -240,5 +266,13 @@ task.spawn(function()
             BuyAllSelectedEggs()
         end
         print("[AutoFarm] --- Loop End ---")
+    end
+
+    if RunInLoop then
+        while task.wait(1) do
+            mainStep()
+        end
+    else
+        mainStep()
     end
 end)
