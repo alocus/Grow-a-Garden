@@ -226,13 +226,6 @@ local EggTab = Window:CreateTab("Egg Shop", 4483362458)
 local SellTab = Window:CreateTab("Auto-Sell", 4483362458)
 local WalkTab = Window:CreateTab("Auto-Walk", 4483362458)
 
--- Helper to update dropdown options
-local function UpdateDropdownOptions(dropdown, options)
-    if dropdown and dropdown.SetOptions then
-        dropdown:SetOptions(options)
-    end
-end
-
 -- Auto-Plant
 SeedDropdown = PlantTab:CreateDropdown({
     Name = "Seed",
@@ -406,9 +399,9 @@ coroutine.wrap(function()
         GetSeedStock()
         GetEggStock()
         GetOwnedSeeds()
-        -- Update dropdowns
-        UpdateDropdownOptions(SeedDropdown, getSeedOptions())
-        UpdateDropdownOptions(EggDropdown, getEggOptions())
+        -- Recreate dropdowns with new options
+        RefreshSeedDropdown()
+        RefreshEggDropdown()
         -- Auto-buy logic
         if AutoBuy then
             BuyAllSelectedSeeds()
