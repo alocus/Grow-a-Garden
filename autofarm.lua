@@ -129,21 +129,46 @@ local function BuySeed(Seed: string)
 	GameEvents.BuySeedStock:FireServer(Seed)
 end
 
--- Add a table to store selected seeds for buying
+-- Table to store selected seeds and eggs for buying
 local SelectedSeedsToBuy = {}
+local SelectedEggsToBuy = {}
 
--- Multi-select Combo for seeds in the BuyNode
-BuyNode:MultiSelect({
-    Label = "Seeds",
-    Selected = SelectedSeedsToBuy,
-    GetItems = function()
-        local OnlyStock = OnlyShowStock and OnlyShowStock.Value
-        return GetSeedStock(OnlyStock)
-    end,
-    Callback = function(_, selected)
-        SelectedSeedsToBuy = selected
+-- Function to get egg stock from the Egg Shop UI
+local function GetEggStock(IgnoreNoStock: boolean?): table
+    local EggShop = PlayerGui:FindFirstChild("Egg_Shop")
+    if not EggShop then return {} end
+    local Items = EggShop:FindFirstChildWhichIsA("Frame", true)
+    if not Items then return {} end
+
+    local NewList = {}
+
+    for _, Item in next, Items:GetChildren() do
+        local MainFrame = Item:FindFirstChild("Main_Frame")
+        if not MainFrame then continue end
+
+        local StockText = MainFrame:FindFirstChild("Stock_Text")
+        if not StockText then continue end
+        local StockCount = tonumber(StockText.Text:match("%d+"))
+
+        if IgnoreNoStock then
+            if StockCount <= 0 then continue end
+            NewList[Item.Name] = StockCount
+            continue
+        end
+
+        EggStock[Item.Name] = StockCount
     end
-})
+
+    return IgnoreNoStock and NewList or EggStock
+end
+
+-- Function to buy an egg
+local function BuyEgg(Egg: string)
+    local buyEggEvent = GameEvents:FindFirstChild("BuyEggStock")
+    if buyEggEvent then
+        buyEggEvent:FireServer(Egg)
+    end
+end
 
 -- Update BuyAllSelectedSeeds to buy only selected seeds
 local function BuyAllSelectedSeeds()
@@ -153,6 +178,19 @@ local function BuyAllSelectedSeeds()
         if stock and stock > 0 then
             for i = 1, stock do
                 BuySeed(seedName)
+            end
+        end
+    end
+end
+
+-- Function to buy all selected eggs
+local function BuyAllSelectedEggs()
+    local stockTable = GetEggStock(true) -- Only eggs with stock > 0
+    for _, eggName in ipairs(SelectedEggsToBuy) do
+        local stock = stockTable[eggName]
+        if stock and stock > 0 then
+            for i = 1, stock do
+                BuyEgg(eggName)
             end
         end
     end
@@ -564,7 +602,7 @@ AutoWalkMaxWait = WallNode:SliderInt({
 })
 
 --// UI: Egg Shop Node
-local EggNode = Window:TreeNode({Title="Egg Shop 🥚"})
+local EggNode = Window:TreeNode({Title = "Egg Shop 🥚"})
 
 EggNode:MultiSelect({
     Label = "Eggs",
