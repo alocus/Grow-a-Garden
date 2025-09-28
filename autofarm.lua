@@ -61,26 +61,19 @@ local function GetSeedStock()
     local items = blueberry.Parent
     for _, item in ipairs(items:GetChildren()) do
         print(string.format("[AutoFarm] --- Properties for item: %s ---", item.Name))
+        -- Print attributes
+        for key, value in pairs(item:GetAttributes()) do
+            print(string.format("  [Attribute] %s = %s", key, tostring(value)))
+        end
+        -- Print ValueBase children
         for _, prop in ipairs(item:GetChildren()) do
-            if prop:IsA("Instance") then
-                for _, subprop in ipairs(prop:GetChildren()) do
-                    if subprop:IsA("ValueBase") then
-                        print(string.format("  %s.%s = %s", prop.Name, subprop.Name, tostring(subprop.Value)))
-                    elseif subprop:IsA("Instance") then
-                        print(string.format("  %s.%s = %s", prop.Name, subprop.Name, tostring(subprop)))
-                    end
-                end
-            end
             if prop:IsA("ValueBase") then
                 print(string.format("  %s = %s", prop.Name, tostring(prop.Value)))
-            elseif prop:IsA("Instance") then
+            elseif prop:IsA("TextLabel") or prop:IsA("TextButton") then
+                print(string.format("  %s.Text = %s", prop.Name, tostring(prop.Text)))
+            else
                 print(string.format("  %s = %s", prop.Name, tostring(prop)))
             end
-        end
-        -- Print attributes as well
-        local attributes = item:GetAttributes()
-        for key, value in pairs(attributes) do
-            print(string.format("  [Attribute] %s = %s", key, tostring(value)))
         end
         print("[AutoFarm] --- End of properties ---")
         local mf = item:FindFirstChild("Main_Frame")
