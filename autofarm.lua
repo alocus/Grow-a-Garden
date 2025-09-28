@@ -19,7 +19,17 @@ local ShecklesCount = Leaderstats:WaitForChild("Sheckles")
 local GameInfo = MarketplaceService:GetProductInfo(game.PlaceId)
 
 --// Rayfield UI
-local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source"))()
+if not loadstring then
+    error("Your executor does not support loadstring.")
+end
+
+local success, Rayfield = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Rayfield/main/source"))()
+end)
+
+if not success or not Rayfield then
+    error("Failed to load Rayfield UI library. Check your internet connection or executor.")
+end
 
 local Window = Rayfield:CreateWindow({
     Name = GameInfo.Name .. " | Depso",
