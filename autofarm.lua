@@ -536,17 +536,19 @@ HarvestNode:Separator({Text="Ignores:"})
 CreateCheckboxes(HarvestNode, HarvestIgnores)
 
 --// Auto-Buy
-local BuyNode = Window:TreeNode({Title="Auto-Buy 🥕"})
-local OnlyShowStock
+local BuyNode = Window:TreeNode({Title = "Seed Shop 🌱"})
 
-SelectedSeedStock = BuyNode:Combo({
-	Label = "Seed",
-	Selected = "",
-	GetItems = function()
-		local OnlyStock = OnlyShowStock and OnlyShowStock.Value
-		return GetSeedStock(OnlyStock)
-	end,
+BuyNode:MultiSelect({
+    Label = "Seeds",
+    Selected = SelectedSeedsToBuy,
+    GetItems = function()
+        return GetSeedStock(true)
+    end,
+    Callback = function(_, selected)
+        SelectedSeedsToBuy = selected
+    end
 })
+
 AutoBuy = BuyNode:Checkbox({
 	Value = false,
 	Label = "Enabled"
