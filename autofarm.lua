@@ -46,6 +46,11 @@ local SeedDropdown, EggDropdown
 --// Utility Functions
 local function GetSeedStock()
     print("[AutoFarm] Fetching seed stock from Seed Shop UI...")
+    -- Clear the SeedStock table before repopulating
+    for k in pairs(SeedStock) do
+        SeedStock[k] = nil
+    end
+
     local shop = PlayerGui:FindFirstChild("Seed_Shop")
     if not shop then print("[AutoFarm] Seed_Shop UI not found."); return {} end
     local blueberry = shop:FindFirstChild("Blueberry", true)
