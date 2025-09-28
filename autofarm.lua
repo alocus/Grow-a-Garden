@@ -48,8 +48,9 @@ local function GetSeedStock()
     print("[AutoFarm] Fetching seed stock from Seed Shop UI...")
     local shop = PlayerGui:FindFirstChild("Seed_Shop")
     if not shop then print("[AutoFarm] Seed_Shop UI not found."); return {} end
-    local items = shop:FindFirstChildWhichIsA("Frame", true)
-    if not items then print("[AutoFarm] Seed_Shop items frame not found."); return {} end
+    local blueberry = shop:FindFirstChild("Blueberry", true)
+    if not blueberry then print("[AutoFarm] Could not find 'Blueberry' seed frame."); return {} end
+    local items = blueberry.Parent
     for _, item in ipairs(items:GetChildren()) do
         local mf = item:FindFirstChild("Main_Frame")
         if mf then
